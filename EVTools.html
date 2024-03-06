@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Dylan's EV Tools</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+	<!--< script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script> -->
+  
+	<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js" integrity="sha384-Rx+T1VzGupg4BHQYs2gCW9It+akI2MM/mndMCy36UVfodzcJcF0GGLxZIzObiEfa" crossorigin="anonymous"></script>
+
+	<!--< <script src = "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-growl/1.0.0/jquery.bootstrap-growl.min.js"></script> -->
+</head>
+
+<body>
+	<div class = "hero-unit" style = "padding:20px;">
+		<h1 id = "JavascriptError" style = "color: red;">JAVASCRIPT ERROR!</h1>
+		<h1 style = "color: lightblue;">Charge Time Calculator</h1>
+		<p style = "padding-top:20px;">*Current SOC:</p>
+		<input id = "CurrentSOC" placeholder="Eg: 35">
+		<p style = "display: inline-block; padding-left: 5px;">%</p>
+		<p style = "padding-top:20px;">*Desired SOC:</p>
+		<input id = "DesiredSOC" placeholder="Eg: 75">
+		<p style = "display: inline-block; padding-left: 5px;">%</p>
+		<p style = "padding-top:20px;">Charge Rate:</p>
+		<input id = "ChargeRate" placeholder="(Leave Blank For 1.44)">
+		<p style = "display: inline-block; padding-left: 5px;">kW</p>
+		<p style = "padding-top:20px;">Maximum Usable Battery Capacity:</p>
+		<input id = "MaxCapacity" placeholder="(Leave Blank For 19)">
+		<p style = "display: inline-block; padding-left: 5px;">kWh</p>
+		<div style="padding-top: 20px;"></div>
+		<button class="btn btn-success" style="margin-bottom: 20px;" onclick="CalculateChargeTime()">Calculate</button>
+		<h5 id = "ChargeValuesMissing" style = "color: red;">One or more required values are 0 or missing!</h5>
+		<div id = "ChargeTimeResults" style = "border: 3px solid whitesmoke; padding: 10px;">
+			<h4 id = "ChargeTimeDisplay">Charge Time: </h4>
+			<h4 id = "TimeToReachDisplay">Fully Charged (From Now): </h4>
+			<h4 id = "7TimeToReachDisplay">Fully Charged (From 7PM): </h4>
+			<h4 id = "kWhRequiredDisplay">Required kWh: </h4>
+			<h4 id = "OffPeakCostDisplay">Cost (Off-Peak): </h4>
+		</div>
+	</div>
+
+	<script>
+		document.getElementById("JavascriptError").style.display = "none";
+		document.getElementById("ChargeTimeResults").style.display = "none";
+		document.getElementById("ChargeValuesMissing").style.display = "none";
+
+		function tConvert (decimalHours) {
+			// Check correct time format and split into components
+
+			var hrs = parseInt(decimalHours);
+			var min = Math.round((decimalHours - hrs) * 60);
+
+			if (min == 60){
+				hrs = hrs + 1;
+				min = 0;
+			}
+
+			if (hrs >= 24){
+				hrs = hrs - 24;
+			}
+
+			var hrsString = String(hrs)
+			if (hrsString.length == 1){
+				hrsString = "0" + hrsString;
+			}
+
+			var minString = String(min)
+			if (minString.length == 1){
+				minString = "0" + minString;
+			}
+
+			var time = hrsString + ":" + minString;
+
+			time = time.match(/^([01]\d|2[0-3])(:)([0-5]\d)(:[0-5]\d)?$/) || [time];
+	
+			console.log("Time: "+time)
+			if (time.length > 1) { // If time format correct
+				time = time.slice (1);  // Remove full string match value
+				time[5] = +time[0] < 12 ? 'AM' : 'PM'; // Set AM/PM
+				time[0] = +time[0] % 12 || 12; // Adjust hours
+			}
+			return time.join (''); // return adjusted time or original string
+  		}
+
+		function CalculateChargeTime(){
+			document.getElementById("ChargeTimeResults").style.display = "none";
+			document.getElementById("ChargeValuesMissing").style.display = "none";
+			var CurrentSOC = Number(document.getElementById("CurrentSOC").value);
+			var DesiredSOC = Number(document.getElementById("DesiredSOC").value);
+			var ChargeRate = Number(document.getElementById("ChargeRate").value);
+			var MaxCapacity = Number(document.getElementById("MaxCapacity").value);
+
+			if(CurrentSOC == 0 || DesiredSOC == 0){
+				document.getElementById("ChargeValuesMissing").style.display = "block";
+				return;
+			}
+
+			if (MaxCapacity == 0){
+				MaxCapacity = 19;
+			}
+			if (ChargeRate == 0){
+				ChargeRate = 1.44;
+			}
+			
+			var ChargePercentRequired = DesiredSOC - CurrentSOC;
+			var ChargekWhRequired = (ChargePercentRequired / 100) * MaxCapacity;
+			var ChargeTimeRequired = ChargekWhRequired / ChargeRate;
+
+			var date = new Date();
+			var currentHour = date.getHours();
+			var currentMin = date.getMinutes();
+
+			var CurrentHoursDecimal = currentHour + (currentMin / 60);
+			var ChargeCompleteFromNowDecimalHours = CurrentHoursDecimal + ChargeTimeRequired
+			var ChargeCompleteFrom7DecimalHours = 19 + ChargeTimeRequired //19 is 7pm in 24 hour time
+	
+			document.getElementById("ChargeTimeDisplay").innerHTML = "<b>Charge Time:</b> " + String(Math.round(ChargeTimeRequired * 100) / 100) + " Hours";
+			document.getElementById("TimeToReachDisplay").innerHTML = "<b>Charged (From Now):</b> " + tConvert(ChargeCompleteFromNowDecimalHours);
+			document.getElementById("7TimeToReachDisplay").innerHTML = "<b>Charged (From 7PM):</b> " + tConvert(ChargeCompleteFrom7DecimalHours);
+			document.getElementById("kWhRequiredDisplay").innerHTML = "<b>Required kWh:</b> " + String(Math.round(ChargekWhRequired * 100) / 100) + " kWh";
+			document.getElementById("OffPeakCostDisplay").innerHTML = "<b>Cost (Off-Peak):</b> $" + String(Math.round((0.087 * ChargekWhRequired) * 100) / 100);
+			setTimeout(() => {
+				document.getElementById("ChargeTimeResults").style.display = "block";
+			}, 100);
+		}
+	</script>
+</body>
