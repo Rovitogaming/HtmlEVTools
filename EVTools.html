@@ -8,9 +8,9 @@
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
 	<!--< script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script> -->
   
-	<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+	<!--< <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script> -->
 
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js" integrity="sha384-Rx+T1VzGupg4BHQYs2gCW9It+akI2MM/mndMCy36UVfodzcJcF0GGLxZIzObiEfa" crossorigin="anonymous"></script>
+	<!--< <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js" integrity="sha384-Rx+T1VzGupg4BHQYs2gCW9It+akI2MM/mndMCy36UVfodzcJcF0GGLxZIzObiEfa" crossorigin="anonymous"></script> -->
 
 	<!--< <script src = "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-growl/1.0.0/jquery.bootstrap-growl.min.js"></script> -->
 </head>
@@ -32,22 +32,22 @@
 		<input id = "MaxCapacity" placeholder="Default: 19">
 		<p style = "display: inline-block; padding-left: 5px;">kWh</p>
 		<div style="padding-top: 20px;"></div>
-		<h5 id = "ChargeValuesMissing" style = "color: red;">Current SOC is required!</h5>
-		<h5 id = "CurrentHigherThanDesired" style = "color: red;">Current SOC is greater than Desired SOC!</h5>
+		<h5 id = "ErrorMessage" style = "color: red;">Current SOC is required!</h5>
+		<h5 id = "WarningMessage" style = "color: yellow;">Current SOC is greater than Desired SOC!</h5>
 		<div id = "ChargeTimeResults" style = "border: 3px solid whitesmoke; padding: 10px;">
-			<h4 id = "ChargeTimeDisplay">Charge Time: </h4>
-			<h4 id = "TimeToReachDisplay">Fully Charged (From Now): </h4>
-			<h4 id = "7TimeToReachDisplay">Fully Charged (From 7PM): </h4>
-			<h4 id = "kWhRequiredDisplay">Required kWh: </h4>
-			<h4 id = "OffPeakCostDisplay">Cost (Off-Peak): </h4>
+			<h4 id = "ChargeTimeDisplay" style = "color: lightblue;">Charge Time: </h4>
+			<h4 id = "TimeToReachDisplay" style = "color: rgb(0, 119, 255);">Fully Charged (From Now): </h4>
+			<h4 id = "7TimeToReachDisplay" style = "color: lightgreen;">Fully Charged (From 7PM): </h4>
+			<h4 id = "kWhRequiredDisplay" style = "color: orange;">Required kWh: </h4>
+			<h4 id = "OffPeakCostDisplay" style = "color: green;">Cost (Off-Peak): </h4>
 		</div>
 	</div>
 
 	<script>
 		document.getElementById("JavascriptError").style.display = "none";
 		document.getElementById("ChargeTimeResults").style.display = "none";
-		document.getElementById("ChargeValuesMissing").style.display = "none";
-		document.getElementById("CurrentHigherThanDesired").style.display = "none";
+		document.getElementById("ErrorMessage").style.display = "none";
+		document.getElementById("WarningMessage").style.display = "none";
 
 		function tConvert (decimalHours) {
 			// Check correct time format and split into components
@@ -89,8 +89,8 @@
 
 		function CalculateChargeTime(){
 			document.getElementById("ChargeTimeResults").style.display = "none";
-			document.getElementById("ChargeValuesMissing").style.display = "none";
-			document.getElementById("CurrentHigherThanDesired").style.display = "none";
+			document.getElementById("ErrorMessage").style.display = "none";
+			document.getElementById("WarningMessage").style.display = "none";
 			
 			var CurrentSOC = Number(document.getElementById("CurrentSOC").value);
 			var DesiredSOC = Number(document.getElementById("DesiredSOC").value);
@@ -98,7 +98,16 @@
 			var MaxCapacity = Number(document.getElementById("MaxCapacity").value);
 
 			if(CurrentSOC == 0){
-				document.getElementById("ChargeValuesMissing").style.display = "block";
+				document.getElementById("ErrorMessage").innerHTML = "Current SOC is required!"
+				document.getElementById("ErrorMessage").style.display = "block";
+				return;
+			}
+
+			console.log(CurrentSOC)
+
+			if(isNaN(CurrentSOC) || isNaN(DesiredSOC) || isNaN(ChargeRate) || isNaN(MaxCapacity)){
+				document.getElementById("ErrorMessage").innerHTML = "One or more values are not a valid number!"
+				document.getElementById("ErrorMessage").style.display = "block";
 				return;
 			}
 
@@ -112,14 +121,25 @@
 				DesiredSOC = 75;
 			}
 
+			if(CurrentSOC < 0){
+				document.getElementById("WarningMessage").innerHTML = "Current SOC is negative!";
+				document.getElementById("WarningMessage").style.display = "block";
+			}
+
 			if(CurrentSOC > DesiredSOC){
-				document.getElementById("CurrentHigherThanDesired").style.display = "block";
+				document.getElementById("ErrorMessage").innerHTML = "Current SOC is greater than Desired SOC!"
+				document.getElementById("ErrorMessage").style.display = "block";
 				return;
 			}
 			
 			var ChargePercentRequired = DesiredSOC - CurrentSOC;
 			var ChargekWhRequired = (ChargePercentRequired / 100) * MaxCapacity;
 			var ChargeTimeRequired = ChargekWhRequired / ChargeRate;
+
+			if(ChargeTimeRequired > 24){
+				document.getElementById("WarningMessage").innerHTML = "Large Charge Time, Estimated Clock Values May Be Incorrect, Use Hours Value!";
+				document.getElementById("WarningMessage").style.display = "block";
+			}
 
 			var date = new Date();
 			var currentHour = date.getHours();
@@ -136,7 +156,7 @@
 			document.getElementById("OffPeakCostDisplay").innerHTML = "<b>Cost (Off-Peak):</b> $" + String(Math.round((0.087 * ChargekWhRequired) * 100) / 100);
 			setTimeout(() => {
 				document.getElementById("ChargeTimeResults").style.display = "block";
-			}, 100);
+			}, 10);
 		}
 
 		document.getElementById("CurrentSOC").addEventListener("input", (event) => {
