@@ -1,5 +1,7 @@
 An HTML web app that contains some tools I thought were useful mainly for myself.
-The electric vehicle I own doesn't have any way of setting a charge percent limit, so I created this web app to make calculating what time to set the charge timer to very easy
+
+The electric vehicle I own doesn't have any way of setting a charge percent limit, so I created this web app to make calculating what time to set the charge timer to very easy.
+
 I figure I'll add more features as I see fit but currently the features are:
 
 Features:
