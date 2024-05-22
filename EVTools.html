@@ -23,7 +23,7 @@
 		<input id = "CurrentSOC" placeholder="Eg: 35">
 		<p style = "display: inline-block; padding-left: 5px;">%</p>
 		<p style = "padding-top:20px;">Desired SOC:</p>
-		<input id = "DesiredSOC" placeholder="Default: 75">
+		<input id = "DesiredSOC" placeholder="Default: 80">
 		<p style = "display: inline-block; padding-left: 5px;">%</p>
 		<p style = "padding-top:20px;">Charge Rate:</p>
 		<input id = "ChargeRate" placeholder="Default: 1.44">
@@ -44,6 +44,8 @@
 	</div>
 
 	<script>
+		var chargeCorrectionFactor = 1.1 // Multiplies charge kWh required by this number, helps to offset against charging losses due to not being 100% efficient
+		
 		document.getElementById("JavascriptError").style.display = "none";
 		document.getElementById("ChargeTimeResults").style.display = "none";
 		document.getElementById("ErrorMessage").style.display = "none";
@@ -118,7 +120,7 @@
 				ChargeRate = 1.44;
 			}
 			if (DesiredSOC == 0){
-				DesiredSOC = 75;
+				DesiredSOC = 80;
 			}
 
 			if(CurrentSOC < 0){
@@ -134,6 +136,7 @@
 			
 			var ChargePercentRequired = DesiredSOC - CurrentSOC;
 			var ChargekWhRequired = (ChargePercentRequired / 100) * MaxCapacity;
+			chargekWhRequired = chargekWhRequired * chargeCorrectionFactor
 			var ChargeTimeRequired = ChargekWhRequired / ChargeRate;
 
 			if(ChargeTimeRequired > 24){
