@@ -136,7 +136,7 @@
 			
 			var ChargePercentRequired = DesiredSOC - CurrentSOC;
 			var ChargekWhRequired = (ChargePercentRequired / 100) * MaxCapacity;
-			chargekWhRequired = chargekWhRequired * chargeCorrectionFactor
+			ChargekWhRequired = ChargekWhRequired * chargeCorrectionFactor
 			var ChargeTimeRequired = ChargekWhRequired / ChargeRate;
 
 			if(ChargeTimeRequired > 24){
