@@ -157,6 +157,13 @@
 			document.getElementById("7TimeToReachDisplay").innerHTML = "<b>Charged (From 7PM):</b> " + tConvert(ChargeCompleteFrom7DecimalHours);
 			document.getElementById("kWhRequiredDisplay").innerHTML = "<b>Required kWh:</b> " + String(Math.round(ChargekWhRequired * 100) / 100) + " kWh";
 			document.getElementById("OffPeakCostDisplay").innerHTML = "<b>Cost (Off-Peak):</b> $" + String(Math.round((0.087 * ChargekWhRequired) * 100) / 100);
+
+			if(currentHour >= 15 && currentHour < 19){ //If time is in between 3-7 pm then highlight the from 7 pm time
+				document.getElementById("7TimeToReachDisplay").style.backgroundColor = "rgba(255, 255, 0, 0.2)"
+			}else{
+				document.getElementById("TimeToReachDisplay").style.backgroundColor = "rgba(255, 255, 0, 0.2)"
+			}
+			
 			setTimeout(() => {
 				document.getElementById("ChargeTimeResults").style.display = "block";
 			}, 10);
